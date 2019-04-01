@@ -1,0 +1,90 @@
+aiktc@aiktc04:~$ sudo mysql -u root -p;
+[sudo] password for aiktc:  
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 2
+Server version: 5.7.25-0ubuntu0.18.04.2 (Ubuntu)
+
+Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> use OLAP;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> select * from olap;
++----------+------+----------+------------+--------+
+| sales_id | year | country  | product    | profit |
++----------+------+----------+------------+--------+
+|        1 | 1990 | india    | milk       | 200000 |
+|        2 | 1991 | pakistan | bread      | 300000 |
+|        3 | 1992 | pakistan | chocolate  | 100000 |
+|        4 | 1993 | pakistan | bottle     |  50000 |
+|        5 | 1994 | pakistan | shoes      | 200000 |
+|        6 | 1995 | pakistan | comb       | 100000 |
+|        7 | 1996 | pakistan | rubber     | 100000 |
+|        8 | 1996 | india    | bread      | 500000 |
+|        9 | 1997 | india    | rice       | 400000 |
+|       10 | 1997 | india    | wheat      | 600000 |
+|       11 | 1995 | india    | chocolate  | 700000 |
+|       12 | 1994 | india    | toothpaste | 400000 |
+|       13 | 1990 | china    | toothpaste | 400000 |
+|       14 | 1991 | china    | bags       | 300000 |
+|       15 | 1992 | china    | chocolates | 800000 |
+|       16 | 1993 | china    | chicken    | 700000 |
+|       17 | 1994 | china    | bottle     | 500000 |
+|       18 | 1995 | china    | cosmatic   | 600000 |
+|       19 | 1990 | dubai    | chicken    | 800000 |
+|       20 | 1991 | dubai    | scarf      | 700000 |
+|       21 | 1992 | dubai    | mobile     | 300000 |
+|       22 | 1993 | dubai    | jwellery   | 200000 |
+|       23 | 1994 | dubai    | milk       | 900000 |
+|       24 | 1995 | dubai    | bread      | 800000 |
++----------+------+----------+------------+--------+
+24 rows in set (0.00 sec)
+
+mysql> select country , sum(if(product='bread' ,profit,NULL)) as 'bread ', sum(if(product='chocolate' , profit , NULL)) as 'chocolate', from sales group by country;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'from sales group by country' at line 1
+mysql> select country , sum(if(product='bread' ,profit,NULL)) as 'bread ', sum(if(product='chocolate' , profit , NULL)) as 'chocolate' from sales group by country;
+ERROR 1146 (42S02): Table 'OLAP.sales' doesn't exist
+mysql> select country , sum(if(product='bread' ,profit,NULL)) as 'bread ', sum(if(product='chocolate' , profit , NULL)) as 'chocolate' from olap  group by country;
++----------+--------+-----------+
+| country  | bread  | chocolate |
++----------+--------+-----------+
+| china    |   NULL |      NULL |
+| dubai    | 800000 |      NULL |
+| india    | 500000 |    700000 |
+| pakistan | 300000 |    100000 |
++----------+--------+-----------+
+4 rows in set (0.00 sec)
+
+mysql> select country as '' , sum(if(product='bread' ,profit,NULL)) as 'bread ', sum(if(product='chocolate' , profit , NULL)) as 'chocolate' from olap  group by country;
++----------+--------+-----------+
+|          | bread  | chocolate |
++----------+--------+-----------+
+| china    |   NULL |      NULL |
+| dubai    | 800000 |      NULL |
+| india    | 500000 |    700000 |
+| pakistan | 300000 |    100000 |
++----------+--------+-----------+
+4 rows in set (0.00 sec)
+
+mysql> select country as '' , sum(if(product='bread' ,profit,NULL)) as 'bread ', sum(if(product='chocolate' , profit , NULL)) as 'chocolate', sum(if(product='rice', profit , NULL)) as 'rice' from olap  group by country;
++----------+--------+-----------+--------+
+|          | bread  | chocolate | rice   |
++----------+--------+-----------+--------+
+| china    |   NULL |      NULL |   NULL |
+| dubai    | 800000 |      NULL |   NULL |
+| india    | 500000 |    700000 | 400000 |
+| pakistan | 300000 |    100000 |   NULL |
++----------+--------+-----------+--------+
+4 rows in set (0.00 sec)
+
+mysql> 
+
